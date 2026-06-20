@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>288</width>
-    <height>214</height>
+    <width>284</width>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,9 +22,9 @@
     </widget>
    </item>
    <item row="0" column="1">
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="robotIDLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -36,9 +36,9 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="displayNameLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -50,9 +50,9 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QLabel" name="label_10">
+    <widget class="QLabel" name="modelLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -64,9 +64,9 @@
     </widget>
    </item>
    <item row="3" column="1">
-    <widget class="QLabel" name="label_11">
+    <widget class="QLabel" name="siteIDLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -78,9 +78,9 @@
     </widget>
    </item>
    <item row="4" column="1">
-    <widget class="QLabel" name="label_12">
+    <widget class="QLabel" name="statusLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -92,9 +92,9 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="QLabel" name="label_13">
+    <widget class="QLabel" name="createdAtLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -106,9 +106,9 @@
     </widget>
    </item>
    <item row="6" column="1">
-    <widget class="QLabel" name="label_14">
+    <widget class="QLabel" name="lastEventTimeLabel">
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>

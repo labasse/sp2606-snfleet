@@ -48,10 +48,10 @@ class Ui_MainWindow(object):
         self.robotDetailTab.setObjectName(u"robotDetailTab")
         self.horizontalLayout = QHBoxLayout(self.robotDetailTab)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.widget = DetailView(self.robotDetailTab)
-        self.widget.setObjectName(u"widget")
+        self.detailView = DetailView(self.robotDetailTab)
+        self.detailView.setObjectName(u"detailView")
 
-        self.horizontalLayout.addWidget(self.widget)
+        self.horizontalLayout.addWidget(self.detailView)
 
         self.frame = QFrame(self.robotDetailTab)
         self.frame.setObjectName(u"frame")

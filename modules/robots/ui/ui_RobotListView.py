@@ -15,8 +15,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QListView, QSizePolicy,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QHeaderView,
+    QSizePolicy, QTableView, QWidget)
 
 class Ui_RobotListView(object):
     def setupUi(self, RobotListView):
@@ -25,10 +25,11 @@ class Ui_RobotListView(object):
         RobotListView.resize(438, 368)
         self.horizontalLayout = QHBoxLayout(RobotListView)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.listView = QListView(RobotListView)
-        self.listView.setObjectName(u"listView")
+        self.tableView = QTableView(RobotListView)
+        self.tableView.setObjectName(u"tableView")
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
-        self.horizontalLayout.addWidget(self.listView)
+        self.horizontalLayout.addWidget(self.tableView)
 
 
         self.retranslateUi(RobotListView)

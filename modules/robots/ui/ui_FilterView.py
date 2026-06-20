@@ -23,7 +23,7 @@ class Ui_FilterView(object):
     def setupUi(self, FilterView):
         if not FilterView.objectName():
             FilterView.setObjectName(u"FilterView")
-        FilterView.resize(734, 69)
+        FilterView.resize(730, 82)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -99,7 +99,7 @@ class Ui_FilterView(object):
 
     def retranslateUi(self, FilterView):
         FilterView.setWindowTitle(QCoreApplication.translate("FilterView", u"Form", None))
-        self.groupBox.setTitle(QCoreApplication.translate("FilterView", u"Filtres rapides", None))
+        self.groupBox.setTitle(QCoreApplication.translate("FilterView", u"Quick filters", None))
         self.label.setText(QCoreApplication.translate("FilterView", u"Site:", None))
         self.label_2.setText(QCoreApplication.translate("FilterView", u"Status:", None))
         self.label_3.setText(QCoreApplication.translate("FilterView", u"Search:", None))
