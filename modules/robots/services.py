@@ -1,13 +1,11 @@
 """Domain service for managing the robot information."""
 
 import datetime
-import os
 import random
 from datetime import timedelta
 
 from PySide6.QtCore import QObject, Signal
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from .models import Robot
 
@@ -18,18 +16,18 @@ STATUS = ["IDLE", "ON_MISSION", "UNDER_MAINTENANCE", "FAULTY", "OFFLINE"]
 class RobotListService:
     """Service to manage the list of robots."""
 
-    def __init__(self) -> None:
+    def __init__(self, session_factory: sessionmaker) -> None:
         """Initialize with empty robot list."""
-        url = os.getenv("ROBOTS_DB_URL", "sqlite:///")
-        print(f"Connecting to database at {url}")
-        self.engine = create_engine(url, echo=False)
+        self.session_factory = session_factory
 
     def get_robots(self) -> list[Robot]:
          """Return the list of robots."""
-         with Session(self.engine) as session:
-             return session.query(Robot).all()
+         with self.session_factory() as session:
+            if not session.query(Robot).first():
+                self._dummy_data(session)
+            return session.query(Robot).all()
 
-    def dummy_data(self) -> None:
+    def _dummy_data(self, session: Session) -> None:
         """Populate the service with dummy data for testing."""
         now = datetime.datetime.now(datetime.UTC)
         robots = [
@@ -46,11 +44,8 @@ class RobotListService:
             )
             for i, model in [(i, random.choice(MODELS)) for i in range(10)]
         ]
-        with Session(self.engine) as session:
-            if not session.query(Robot).first():
-                session.add_all(robots)
-                session.commit()
-                print(f"Inserted {len(robots)} dummy robots into the database.")
+        session.add_all(robots)
+        session.commit()
 
 class SelectionService(QObject):
     """Service to manage the selection of a robot."""

@@ -15,32 +15,27 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QMainWindow,
-    QMenuBar, QSizePolicy, QSplitter, QStatusBar,
-    QTabWidget, QVBoxLayout, QWidget)
-
-from modules.robots.views import (DetailView, FilterView, RobotListView)
+from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QHBoxLayout,
+    QMainWindow, QMenuBar, QSizePolicy, QSplitter,
+    QStackedWidget, QStatusBar, QTabWidget, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(857, 600)
+        MainWindow.resize(861, 599)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.verticalLayout = QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.filterView = FilterView(self.centralwidget)
-        self.filterView.setObjectName(u"filterView")
-        self.filterView.setMaximumSize(QSize(16777215, 80))
-
-        self.verticalLayout.addWidget(self.filterView)
-
+        self.gridLayout = QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName(u"gridLayout")
         self.splitter = QSplitter(self.centralwidget)
         self.splitter.setObjectName(u"splitter")
         self.splitter.setOrientation(Qt.Orientation.Horizontal)
-        self.robotListView = RobotListView(self.splitter)
+        self.robotListView = QStackedWidget(self.splitter)
         self.robotListView.setObjectName(u"robotListView")
+        self.robotListViewPage1 = QWidget()
+        self.robotListViewPage1.setObjectName(u"robotListViewPage1")
+        self.robotListView.addWidget(self.robotListViewPage1)
         self.splitter.addWidget(self.robotListView)
         self.tabWidget = QTabWidget(self.splitter)
         self.tabWidget.setObjectName(u"tabWidget")
@@ -48,36 +43,58 @@ class Ui_MainWindow(object):
         self.robotDetailTab.setObjectName(u"robotDetailTab")
         self.horizontalLayout = QHBoxLayout(self.robotDetailTab)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.detailView = DetailView(self.robotDetailTab)
+        self.detailView = QStackedWidget(self.robotDetailTab)
         self.detailView.setObjectName(u"detailView")
+        self.detailViewPage1 = QWidget()
+        self.detailViewPage1.setObjectName(u"detailViewPage1")
+        self.detailView.addWidget(self.detailViewPage1)
 
         self.horizontalLayout.addWidget(self.detailView)
 
-        self.frame = QFrame(self.robotDetailTab)
-        self.frame.setObjectName(u"frame")
-        self.frame.setAutoFillBackground(False)
-        self.frame.setStyleSheet(u"background-color: SteelBlue")
-        self.frame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame.setFrameShadow(QFrame.Shadow.Plain)
-        self.frame.setLineWidth(0)
+        self.eventsMapView = QFrame(self.robotDetailTab)
+        self.eventsMapView.setObjectName(u"eventsMapView")
+        self.eventsMapView.setAutoFillBackground(False)
+        self.eventsMapView.setStyleSheet(u"background-color: SteelBlue")
+        self.eventsMapView.setFrameShape(QFrame.Shape.StyledPanel)
+        self.eventsMapView.setFrameShadow(QFrame.Shadow.Plain)
+        self.eventsMapView.setLineWidth(0)
 
-        self.horizontalLayout.addWidget(self.frame)
+        self.horizontalLayout.addWidget(self.eventsMapView)
 
         self.tabWidget.addTab(self.robotDetailTab, "")
         self.eventsTab = QWidget()
         self.eventsTab.setObjectName(u"eventsTab")
+        self.horizontalLayout_2 = QHBoxLayout(self.eventsTab)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.eventView = QStackedWidget(self.eventsTab)
+        self.eventView.setObjectName(u"eventView")
+        self.stackedWidgetPage1 = QWidget()
+        self.stackedWidgetPage1.setObjectName(u"stackedWidgetPage1")
+        self.eventView.addWidget(self.stackedWidgetPage1)
+
+        self.horizontalLayout_2.addWidget(self.eventView)
+
         self.tabWidget.addTab(self.eventsTab, "")
         self.alertsTab = QWidget()
         self.alertsTab.setObjectName(u"alertsTab")
         self.tabWidget.addTab(self.alertsTab, "")
         self.splitter.addWidget(self.tabWidget)
 
-        self.verticalLayout.addWidget(self.splitter)
+        self.gridLayout.addWidget(self.splitter, 1, 0, 1, 1)
+
+        self.filterView = QStackedWidget(self.centralwidget)
+        self.filterView.setObjectName(u"filterView")
+        self.filterView.setMaximumSize(QSize(16777215, 80))
+        self.filterViewPage1 = QWidget()
+        self.filterViewPage1.setObjectName(u"filterViewPage1")
+        self.filterView.addWidget(self.filterViewPage1)
+
+        self.gridLayout.addWidget(self.filterView, 0, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 857, 33))
+        self.menubar.setGeometry(QRect(0, 0, 861, 33))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")

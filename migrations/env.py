@@ -1,10 +1,11 @@
-"""Alembic environment configuration file for the robots module."""
+"""Alembic environment script for database migrations."""
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from modules.robots.models import Base
+from modules.events.models import Base as EventsModuleBase
+from modules.robots.models import Base as RobotsModuleBase
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,7 +18,9 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-target_metadata = Base.metadata
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+target_metadata = [ RobotsModuleBase.metadata, EventsModuleBase.metadata ]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

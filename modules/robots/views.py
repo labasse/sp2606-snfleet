@@ -1,10 +1,11 @@
 """Robots module views."""
-from collections.abc import Sequence
 from typing import override
 
-from PySide6.QtCore import QAbstractTableModel, QItemSelection, QModelIndex, Qt, Slot
-from PySide6.QtGui import QShowEvent
+from PySide6.QtCore import QAbstractTableModel, QItemSelection, QModelIndex, Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget
+
+import modules.events
 
 from .models import Robot
 from .services import RobotListService, SelectionService
@@ -12,29 +13,36 @@ from .ui.ui_DetailView import Ui_DetailView
 from .ui.ui_FilterView import Ui_FilterView
 from .ui.ui_RobotListView import Ui_RobotListView
 
-FIELD_INDEX_ROBOT_ID = 0
-FIELD_INDEX_DISPLAY_NAME = 1
-FIELD_INDEX_MODEL = 2
-FIELD_INDEX_SITE_ID = 3
-FIELD_INDEX_STATUS = 4
-FIELD_INDEX_LAST_EVENT_TIME = 5
-FIELD_INDEX_CRITICITY = 6
+HEADERS = ["ID", "Display Name", "Model", "Site",
+           "Status", "Last Event", "Criticity"]
+HEADER_ROBOT_ATTRIBUTES = ["robot_id", "display_name", "model", "site_id"]
+HEADER_STATUS = 0
+HEADER_STATUS_LAST_EVENT = 1
+HEADER_STATUS_CRITICITY = 2
+
+CRITICITY_COLORS = {
+    "green" : QColor(0, 200, 0),
+    "orange": QColor(255, 165, 0),
+    "red"   : QColor(255, 0, 0),
+    "gray"  : QColor(128, 128, 128),
+}
 
 class RobotsTableModel(QAbstractTableModel):
     """Table model for the fleet overview."""
 
-    Columns : Sequence[str] = ["ID", "Display Name", "Model", "Site",
-                               "Status", "Last Event", "Criticity"]
-
-    def __init__(self, list_service: RobotListService) -> None:
+    def __init__(self,
+                 list_service: RobotListService,
+                 events_facade: modules.events.IEventsFacade) -> None:
         """Initialize with empty robot list."""
         super().__init__()
-        self._robots: list[Robot] = list_service.get_robots()
+        self.list_service = list_service
+        self.events_facade = events_facade
+        self._robots = self.list_service.get_robots()
 
-    def update_robots(self, robots: list[Robot]) -> None:
+    def refresh(self) -> None:
         """Replace the current robot list and refresh view."""
         self.beginResetModel()
-        self._robots = robots
+        self._robots = self.list_service.get_robots()
         self.endResetModel()
 
     def get_id_at(self, index: QModelIndex) -> str | None:
@@ -51,7 +59,7 @@ class RobotsTableModel(QAbstractTableModel):
     @override
     def columnCount(self, parent: QModelIndex|None = None) -> int:
         """Get number of columns is fixed by the Columns definition."""
-        return len(self.Columns)
+        return len(HEADERS)
 
     @override
     def data(self, index: QModelIndex,
@@ -61,34 +69,32 @@ class RobotsTableModel(QAbstractTableModel):
             return None
         robot = self._robots[index.row()]
         col = index.column()
-        if role == Qt.BackgroundRole and col == FIELD_INDEX_CRITICITY:
-            return robot.criticity_color
-        if role != Qt.DisplayRole:
-            return None
-        if(col == FIELD_INDEX_ROBOT_ID):
-            return robot.robot_id
-        if(col == FIELD_INDEX_DISPLAY_NAME):
-            return robot.display_name
-        if(col == FIELD_INDEX_MODEL):
-            return robot.model
-        if(col == FIELD_INDEX_SITE_ID):
-            return robot.site_id
-        if(col == FIELD_INDEX_STATUS):
-            return robot.status
-        if(col == FIELD_INDEX_LAST_EVENT_TIME):
-            return robot.last_event_time.isoformat() if robot.last_event_time \
-                else "Never"
-        if(col == FIELD_INDEX_CRITICITY):
-            return robot.criticity
+        if col < len(HEADER_ROBOT_ATTRIBUTES):
+            return getattr(robot, HEADER_ROBOT_ATTRIBUTES[col]) \
+                   if role == Qt.DisplayRole else None
+        return self.get_status_data(robot, col - len(HEADER_ROBOT_ATTRIBUTES), role)
+
+    def get_status_data(self, robot: Robot, col: int, role: Qt.ItemDataRole) -> object:
+        """Provide status-related data for a given robot and column."""
+        status = self.events_facade.get_status(robot.robot_id)
+        if role == Qt.DisplayRole:
+            if col == HEADER_STATUS:
+                return status.status
+            if col == HEADER_STATUS_LAST_EVENT:
+                return status.last_event_time.isoformat() \
+                    if status.last_event_time else None
+            if col == HEADER_STATUS_CRITICITY:
+                return status.criticity
+        elif role == Qt.BackgroundRole and col == HEADER_STATUS_CRITICITY:
+            return CRITICITY_COLORS.get(status.criticity, QColor(128, 128, 128))
         return None
 
     @override
     def headerData(self, section: int, orientation: Qt.Orientation,
                    role: int=Qt.DisplayRole) -> str | None:
         """Provide column headers based on the Columns definition."""
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.Columns[section]
-        return None
+        return HEADERS[section] if orientation == Qt.Horizontal \
+                                   and role == Qt.DisplayRole else None
 
     def get_robot(self, row: int) -> Robot | None:
         """Get the Robot object for a given row index."""
@@ -107,11 +113,16 @@ class FilterView(QWidget, Ui_FilterView):
 class RobotListView(QWidget, Ui_RobotListView):
     """A simple robots list view class."""
 
-    def __init__(self, parent: QWidget = None) -> None:
+    def __init__(self,
+                 robot_list_service: RobotListService,
+                 selection_service: SelectionService,
+                 events_facade: modules.events.IEventsFacade,
+                 parent: QWidget = None) -> None:
         """Initialize the robots list view."""
         super().__init__(parent)
         self.setupUi(self)
-        self.model = RobotsTableModel(self.window().robot_list_service)
+        self.selection_service = selection_service
+        self.model = RobotsTableModel(robot_list_service, events_facade)
         self.tableView.setModel(self.model)
         self.tableView.selectionModel().selectionChanged.connect(
             self.on_selection_changed,
@@ -122,27 +133,22 @@ class RobotListView(QWidget, Ui_RobotListView):
         selection = robot if (indexes := selected.indexes()) and (
             robot := self.tableView.model().get_robot(indexes[0].row())
         ) else None
-        self.window().robot_selection_service.set_selection(selection)
+        self.selection_service.set_selection(selection)
 
 class DetailView(QWidget, Ui_DetailView):
     """A simple robot details view class."""
 
-    selection_service: SelectionService = None
-
-    def __init__(self, parent: QWidget = None) -> None:
+    def __init__(self,
+                 selection_service: SelectionService,
+                 events_facade: modules.events.IEventsFacade,
+                 parent: QWidget = None) -> None:
         """Initialize the robot details view."""
         super().__init__(parent)
         self.setupUi(self)
+        self.selection_service = selection_service
+        self.events_facade = events_facade
+        self.selection_service.selection_changed.connect(self.update_details)
 
-    @override
-    def showEvent(self, event: QShowEvent) -> None:
-        """Connect to selection service when the view is shown."""
-        super().showEvent(event)
-        if self.selection_service is None:
-            self.selection_service = self.window().robot_selection_service
-            self.selection_service.selection_changed.connect(self.update_details)
-
-    @Slot(Robot)
     def update_details(self, robot: Robot | None) -> None:
         """Update the details view based on the selected robot."""
         if robot is None:
@@ -157,7 +163,9 @@ class DetailView(QWidget, Ui_DetailView):
             self.displayNameLabel.setText(robot.display_name)
             self.modelLabel.setText(robot.model)
             self.siteIDLabel.setText(robot.site_id)
-            self.statusLabel.setText(robot.status)
+            status = self.events_facade.get_status(robot.robot_id)
+            self.statusLabel.setText(status.status)
             self.lastEventTimeLabel.setText(
-                robot.last_event_time.isoformat() if robot.last_event_time else "Never",
+                status.last_event_time.isoformat() if status.last_event_time
+                else "Never",
             )

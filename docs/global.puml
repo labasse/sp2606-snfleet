@@ -1,0 +1,125 @@
+@startuml Overview
+
+package "shared" {
+    class ServiceHost {
+        +resolve(type: Type[T]) : T
+        +register_singleton(type: Type, factory: Callable)
+        +register_transient(type: Type, factory: Callable)
+    }
+}
+
+package "modules.events" {
+    dataclass StatusInfo {
+        +status: str
+        +last_event_time: datetime.datetime
+        +has_unack_critical: bool
+        +criticity: str
+    }
+
+    interface IEventsFacade {
+        +get_status(robot_id: str) : StatusInfo
+        +filter_by_robot(robot_id: str) : None
+        +new_events_view(parent: QWidget) : QWidget
+    }
+
+    IEventsFacade <|-- EventsFacade
+
+    package "services" {
+        class EventFilterService {
+            +filter_criteria_changed: Signal
+            +set_robot_id(robot_id: str) : None
+            +get_robot_id() : str
+        }
+    }
+    
+    package "views" {
+        EventsView ..> EventFilterService : uses
+    }
+    EventsFacade ..> EventsView : instantiates
+
+    /' entity Event {
+        +id: str
+        +robot_id: str
+        +timestamp: datetime.datetime
+        +event_type: str
+        +severity: str
+        +message: str
+        +payload: dict
+    }'/
+}
+package "modules.robots" {
+    interface IRobotsFacade {
+        +connect_robot_changed(callback: Callable[[str], None]) : None
+        +new_list_view(parent: QWidget) : QWidget
+        +new_detail_view(parent: QWidget) : QWidget
+        +new_filter_view(parent: QWidget) : QWidget
+    }
+
+    IRobotsFacade <|-- RobotsFacade
+
+    package "services" {
+        class RobotListService {
+            +get_robots() : List[Robot]
+        }
+    
+        class SelectionService {
+            +selection_changed: Signal
+            +set_selection(robot: Robot) : None
+            +get_selection() : Robot
+        }
+    }
+
+    package "models"
+    {
+        entity Robot {
+            +robot_id: str
+            +display_name: str
+            +model: str
+            +site_id: str
+            +created_at: datetime.datetime
+        }
+    }
+
+    SelectionService -- "0..1" Robot
+    RobotListService *-- Robot
+
+    package "views" {
+        class RobotListView {
+        }
+
+        class DetailView {
+        }
+
+        class FilterView {
+        }
+    }    
+    ' RobotsFacade ..> IEventsFacade : uses
+    RobotsFacade ..> RobotListView : instantiates
+    RobotsFacade ..> DetailView : instantiates
+    RobotsFacade ..> FilterView : instantiates
+
+    RobotListView ..> RobotListService : uses
+    RobotListView ..> SelectionService : uses
+    DetailView ..> SelectionService : uses
+
+}
+
+"modules.robots" ..> IEventsFacade : uses
+    
+package "app" {
+    class MainWindow {
+        +__init__(self, r:IRobotsFacade, e:IEventsFacade)
+    }
+
+    MainWindow ..> modules.robots.IRobotsFacade : uses
+    MainWindow ..> modules.events.IEventsFacade : uses
+}
+
+note right of MainWindow::__init__ 
+    ...
+    r.connect_robot_changed(e.filter_by_robot)
+    ...
+end note
+
+
+@enduml

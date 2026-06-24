@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EventsView</class>
+ <widget class="QWidget" name="EventsView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>573</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="eventsFilterLayout">
+     <item>
+      <widget class="QLabel" name="startDateLabel">
+       <property name="text">
+        <string>Start:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="start_date_edit">
+       <property name="placeholderText">
+        <string>YYYY-MM-DD</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="endDateLabel">
+       <property name="text">
+        <string>End:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="end_date_edit">
+       <property name="placeholderText">
+        <string>YYYY-MM-DD</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="eventTypeLabel">
+       <property name="text">
+        <string>Types:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="event_type_filter">
+       <property name="placeholderText">
+        <string>Comma separated</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="severityLabel">
+       <property name="text">
+        <string>Severity&gt;=:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="severity_filter">
+       <item>
+        <property name="text">
+         <string>All</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>DEBUG</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>INFO</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>WARNING</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>ERROR</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>CRITICAL</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="searchEventLabel">
+       <property name="text">
+        <string>Search:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="search_event_edit">
+       <property name="placeholderText">
+        <string>Search in message</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="apply_filters_btn">
+       <property name="text">
+        <string>Apply Filters</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="robotIDLabel">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTreeWidget" name="eventsTree">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <column>
+      <property name="text">
+       <string>Timestamp</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Type</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Severity</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Message</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Acknowledged</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

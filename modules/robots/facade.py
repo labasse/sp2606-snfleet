@@ -1,17 +1,77 @@
-"""Facade class for the robots module."""
-from PySide6.QtWidgets import QMainWindow
+"""Domain service for managing the robot information."""
+from abc import ABC, abstractmethod
+from collections.abc import Callable
 
-from modules.robots.services import RobotListService, SelectionService
+from PySide6.QtWidgets import QWidget
+from sqlalchemy.orm import sessionmaker
+
+import modules.events
+from shared.di import ServiceHost
+
+from .services import RobotListService, SelectionService
+from .views import DetailView, FilterView, RobotListView
 
 
-class RobotsFacade:
+class IRobotsFacade(ABC):
+    """Interface for the robots facade."""
+
+    @abstractmethod
+    def connect_robot_changed(self, callback: Callable[[str], None]) -> None:
+        """Connect the selection changed signal to a callback."""
+
+    @abstractmethod
+    def new_list_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot list view."""
+
+    @abstractmethod
+    def new_detail_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot detail view."""
+
+    @abstractmethod
+    def new_filter_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot filter view."""
+
+class RobotsFacade(IRobotsFacade):
     """Facade class for the robots module."""
 
-    def __init__(self, main_window: QMainWindow) -> None:
-        """Initialize the facade with a robot list service."""
-        self.list_service = RobotListService()
-        self.list_service.dummy_data()  # Populate with dummy data for testing
-        self.selection_service = SelectionService()
+    def __init__(self,
+                 events_facade: modules.events.IEventsFacade,
+                 list_service: RobotListService,
+                 selection_service: SelectionService) -> None:
+        """Initialize the robots API."""
+        self.list_service = list_service
+        self.selection_service = selection_service
+        self.events_facade = events_facade
 
-        main_window.robot_list_service = self.list_service
-        main_window.robot_selection_service = self.selection_service
+    def connect_robot_changed(self, callback: Callable[[str], None]) -> None:
+        """Connect the selection changed signal to a callback."""
+        self.selection_service.selection_changed.connect(
+            lambda r: callback(r.robot_id if r else None))
+
+    def new_list_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot list view."""
+        return RobotListView(self.list_service,
+                             self.selection_service,
+                             self.events_facade, parent)
+
+    def new_detail_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot detail view."""
+        return DetailView(self.selection_service, self.events_facade, parent)
+
+    def new_filter_view(self, parent: QWidget) -> QWidget:
+        """Create a new robot filter view."""
+        return FilterView(parent)
+
+
+def register_services(services: ServiceHost) -> None:
+    """Register robots domain services."""
+    services.register_singleton(RobotListService,
+                                lambda s: RobotListService(
+                                    s.resolve(sessionmaker)))
+    services.register_singleton(SelectionService,
+                                lambda _: SelectionService())
+    services.register_singleton(IRobotsFacade,
+                                lambda s: RobotsFacade(
+                                    s.resolve(modules.events.IEventsFacade),
+                                    s.resolve(RobotListService),
+                                    s.resolve(SelectionService)))

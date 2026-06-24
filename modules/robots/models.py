@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-from PySide6.QtGui import QColor
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -26,20 +25,3 @@ class Robot(Base):
     site_id: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
                                                  nullable=False)
-
-    status: str = "OFFLINE"
-    last_event_time: datetime | None = None
-    has_unack_critical: bool = False
-    criticity: str = "gray"
-
-    @property
-    def criticity_color(self) -> QColor:
-        """Return a QColor based on the criticity level."""
-        colors = {
-            "green" : QColor(0, 200, 0),
-            "orange": QColor(255, 165, 0),
-            "red"   : QColor(255, 0, 0),
-            "gray"  : QColor(128, 128, 128),
-        }
-        return colors.get(self.criticity, QColor(128, 128, 128))
-
