@@ -24,6 +24,18 @@ package "modules.events" {
 
     IEventsFacade <|-- EventsFacade
 
+    package "models" {
+        entity Event {
+            +id: str
+            +robot_id: str
+            +timestamp: datetime.datetime
+            +event_type: str
+            +severity: str
+            +message: str
+            +payload: dict
+        }
+    }
+
     package "services" {
         class EventFilterService {
             +filter_criteria_changed: Signal
@@ -32,21 +44,26 @@ package "modules.events" {
         }
         class EventProcessingService {
             +get_status(robot_id: str) : StatusInfo
+            +get_motor_temps(robot_id: str) : Generator[(str, float)]
         }
     }
     
     package "views" {
         EventsView ..> EventFilterService : uses
         RobotMapView ..> EventFilterService : uses
+        RobotMapView ..> EventProcessingService : uses
     }
     EventsFacade ..> EventsView : instantiates
     EventsFacade ..> RobotMapView : instantiates
-    
+
+
+
     package "ports" {
         interface IEventRepository {
             +get_events_for_robot(robot_id: str) : Generator[Event]
         }
     }
+    IEventRepository *-- Event
     EventFilterService ..> IEventRepository : uses
     EventProcessingService ..> IEventRepository : uses
 
