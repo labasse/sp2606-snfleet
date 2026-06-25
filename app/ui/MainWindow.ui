@@ -41,7 +41,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QFrame" name="eventsMapView">
+          <widget class="QStackedWidget" name="eventsMapView">
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
@@ -57,6 +57,7 @@
            <property name="lineWidth">
             <number>0</number>
            </property>
+           <widget class="QWidget" name="eventsMapViewPage1" native="true"/>
           </widget>
          </item>
         </layout>
@@ -68,7 +69,7 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QStackedWidget" name="eventView">
-           <widget class="QWidget" name="stackedWidgetPage1" native="true"/>
+           <widget class="QWidget" name="stackedWidgetPage1"/>
           </widget>
          </item>
         </layout>

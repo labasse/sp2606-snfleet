@@ -51,13 +51,16 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.detailView)
 
-        self.eventsMapView = QFrame(self.robotDetailTab)
+        self.eventsMapView = QStackedWidget(self.robotDetailTab)
         self.eventsMapView.setObjectName(u"eventsMapView")
         self.eventsMapView.setAutoFillBackground(False)
         self.eventsMapView.setStyleSheet(u"background-color: SteelBlue")
         self.eventsMapView.setFrameShape(QFrame.Shape.StyledPanel)
         self.eventsMapView.setFrameShadow(QFrame.Shadow.Plain)
         self.eventsMapView.setLineWidth(0)
+        self.eventsMapViewPage1 = QWidget()
+        self.eventsMapViewPage1.setObjectName(u"eventsMapViewPage1")
+        self.eventsMapView.addWidget(self.eventsMapViewPage1)
 
         self.horizontalLayout.addWidget(self.eventsMapView)
 

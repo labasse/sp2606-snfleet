@@ -37,10 +37,6 @@ class RobotListService:
                 model=model,
                 site_id=random.choice(SITES),
                 created_at=now - timedelta(days=i),
-                status=STATUS[n if (n:=random.randint(0, 15)) < len(STATUS) else 0],
-                last_event_time=now - timedelta(hours=i) if i % 2 == 0 else None,
-                has_unack_critical=(i % 5 == 0),
-                criticity="green" if i % 3 == 0 else "orange" if i % 3 == 1 else "red",
             )
             for i, model in [(i, random.choice(MODELS)) for i in range(10)]
         ]

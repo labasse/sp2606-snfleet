@@ -27,6 +27,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._place(self.filterView   , robots_facade.new_filter_view(self))
 
         self._place(self.eventView    , events_facade.new_events_view(self))
+        self._place(self.eventsMapView, events_facade.new_botmap_view(self))
 
     def _place(self, stack: QStackedLayout, view: QWidget) -> None:
         """Place a view in a stacked layout."""

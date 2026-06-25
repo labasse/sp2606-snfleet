@@ -30,22 +30,41 @@ package "modules.events" {
             +set_robot_id(robot_id: str) : None
             +get_robot_id() : str
         }
+        class EventProcessingService {
+            +get_status(robot_id: str) : StatusInfo
+        }
     }
     
     package "views" {
         EventsView ..> EventFilterService : uses
+        RobotMapView ..> EventFilterService : uses
     }
     EventsFacade ..> EventsView : instantiates
+    EventsFacade ..> RobotMapView : instantiates
+    
+    package "ports" {
+        interface IEventRepository {
+            +get_events_for_robot(robot_id: str) : Generator[Event]
+        }
+    }
+    EventFilterService ..> IEventRepository : uses
+    EventProcessingService ..> IEventRepository : uses
 
-    /' entity Event {
-        +id: str
-        +robot_id: str
-        +timestamp: datetime.datetime
-        +event_type: str
-        +severity: str
-        +message: str
-        +payload: dict
-    }'/
+    package "adapters" {
+        IEventRepository <|-- SqlAlchemyEventRepository
+        IEventRepository <|-- MemoryEventRepository
+    
+        entity EventORM {
+            +id: str
+            +robot_id: str
+            +timestamp: datetime.datetime
+            +event_type: str
+            +severity: str
+            +message: str
+            +payload: dict
+        }
+        SqlAlchemyEventRepository ..> EventORM : persists
+    }
 }
 package "modules.robots" {
     interface IRobotsFacade {
@@ -57,7 +76,22 @@ package "modules.robots" {
 
     IRobotsFacade <|-- RobotsFacade
 
+   
+    package "ports" {
+        interface IRobotStatusService {
+            +get_status(robot_id: str) : str
+            +get_last_event_time(robot_id: str) : datetime.datetime
+            +get_criticity(robot_id: str) : str
+        }
+    }
+
+   package "adapters" {
+        IRobotStatusService <|-- RobotStatusFromEventsAdapter 
+        RobotStatusFromEventsAdapter ..> modules.events.IEventsFacade : uses
+    }
+   
     package "services" {
+        
         class RobotListService {
             +get_robots() : List[Robot]
         }
@@ -103,9 +137,7 @@ package "modules.robots" {
     DetailView ..> SelectionService : uses
 
 }
-
-"modules.robots" ..> IEventsFacade : uses
-    
+ 
 package "app" {
     class MainWindow {
         +__init__(self, r:IRobotsFacade, e:IEventsFacade)

@@ -5,9 +5,8 @@ from PySide6.QtCore import QAbstractTableModel, QItemSelection, QModelIndex, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget
 
-import modules.events
-
 from .models import Robot
+from .ports import IRobotStatusService
 from .services import RobotListService, SelectionService
 from .ui.ui_DetailView import Ui_DetailView
 from .ui.ui_FilterView import Ui_FilterView
@@ -32,11 +31,11 @@ class RobotsTableModel(QAbstractTableModel):
 
     def __init__(self,
                  list_service: RobotListService,
-                 events_facade: modules.events.IEventsFacade) -> None:
+                 status_service: IRobotStatusService) -> None:
         """Initialize with empty robot list."""
         super().__init__()
         self.list_service = list_service
-        self.events_facade = events_facade
+        self.status_service = status_service
         self._robots = self.list_service.get_robots()
 
     def refresh(self) -> None:
@@ -76,17 +75,17 @@ class RobotsTableModel(QAbstractTableModel):
 
     def get_status_data(self, robot: Robot, col: int, role: Qt.ItemDataRole) -> object:
         """Provide status-related data for a given robot and column."""
-        status = self.events_facade.get_status(robot.robot_id)
         if role == Qt.DisplayRole:
             if col == HEADER_STATUS:
-                return status.status
+                return self.status_service.get_status(robot.robot_id)
             if col == HEADER_STATUS_LAST_EVENT:
-                return status.last_event_time.isoformat() \
-                    if status.last_event_time else None
+                last_ev_time = self.status_service.get_last_event_time(robot.robot_id)
+                return last_ev_time.isoformat() if last_ev_time else None
             if col == HEADER_STATUS_CRITICITY:
-                return status.criticity
+                return self.status_service.get_criticity(robot.robot_id)
         elif role == Qt.BackgroundRole and col == HEADER_STATUS_CRITICITY:
-            return CRITICITY_COLORS.get(status.criticity, QColor(128, 128, 128))
+            criticity = self.status_service.get_criticity(robot.robot_id)
+            return CRITICITY_COLORS.get(criticity, QColor(128, 128, 128))
         return None
 
     @override
@@ -116,13 +115,13 @@ class RobotListView(QWidget, Ui_RobotListView):
     def __init__(self,
                  robot_list_service: RobotListService,
                  selection_service: SelectionService,
-                 events_facade: modules.events.IEventsFacade,
+                 status_service: IRobotStatusService,
                  parent: QWidget = None) -> None:
         """Initialize the robots list view."""
         super().__init__(parent)
         self.setupUi(self)
         self.selection_service = selection_service
-        self.model = RobotsTableModel(robot_list_service, events_facade)
+        self.model = RobotsTableModel(robot_list_service, status_service)
         self.tableView.setModel(self.model)
         self.tableView.selectionModel().selectionChanged.connect(
             self.on_selection_changed,
@@ -140,13 +139,13 @@ class DetailView(QWidget, Ui_DetailView):
 
     def __init__(self,
                  selection_service: SelectionService,
-                 events_facade: modules.events.IEventsFacade,
+                 status_service: IRobotStatusService,
                  parent: QWidget = None) -> None:
         """Initialize the robot details view."""
         super().__init__(parent)
         self.setupUi(self)
         self.selection_service = selection_service
-        self.events_facade = events_facade
+        self.status_service = status_service
         self.selection_service.selection_changed.connect(self.update_details)
 
     def update_details(self, robot: Robot | None) -> None:
@@ -163,9 +162,9 @@ class DetailView(QWidget, Ui_DetailView):
             self.displayNameLabel.setText(robot.display_name)
             self.modelLabel.setText(robot.model)
             self.siteIDLabel.setText(robot.site_id)
-            status = self.events_facade.get_status(robot.robot_id)
-            self.statusLabel.setText(status.status)
+            status = self.status_service.get_status(robot.robot_id)
+            self.statusLabel.setText(status)
+            last_event_time = self.status_service.get_last_event_time(robot.robot_id)
             self.lastEventTimeLabel.setText(
-                status.last_event_time.isoformat() if status.last_event_time
-                else "Never",
+                last_event_time.isoformat() if last_event_time else "Never",
             )

@@ -6,6 +6,8 @@ from PySide6.QtWidgets import QWidget
 from sqlalchemy.orm import sessionmaker
 
 import modules.events
+from modules.robots.adapters import RobotStatusFromEventsAdapter
+from modules.robots.ports import IRobotStatusService
 from shared.di import ServiceHost
 
 from .services import RobotListService, SelectionService
@@ -35,13 +37,13 @@ class RobotsFacade(IRobotsFacade):
     """Facade class for the robots module."""
 
     def __init__(self,
-                 events_facade: modules.events.IEventsFacade,
+                 status_service: IRobotStatusService,
                  list_service: RobotListService,
                  selection_service: SelectionService) -> None:
         """Initialize the robots API."""
         self.list_service = list_service
         self.selection_service = selection_service
-        self.events_facade = events_facade
+        self.status_service = status_service
 
     def connect_robot_changed(self, callback: Callable[[str], None]) -> None:
         """Connect the selection changed signal to a callback."""
@@ -52,11 +54,11 @@ class RobotsFacade(IRobotsFacade):
         """Create a new robot list view."""
         return RobotListView(self.list_service,
                              self.selection_service,
-                             self.events_facade, parent)
+                             self.status_service, parent)
 
     def new_detail_view(self, parent: QWidget) -> QWidget:
         """Create a new robot detail view."""
-        return DetailView(self.selection_service, self.events_facade, parent)
+        return DetailView(self.selection_service, self.status_service, parent)
 
     def new_filter_view(self, parent: QWidget) -> QWidget:
         """Create a new robot filter view."""
@@ -70,8 +72,11 @@ def register_services(services: ServiceHost) -> None:
                                     s.resolve(sessionmaker)))
     services.register_singleton(SelectionService,
                                 lambda _: SelectionService())
+    services.register_singleton(IRobotStatusService,
+                                lambda s: RobotStatusFromEventsAdapter(
+                                    s.resolve(modules.events.IEventsFacade)))
     services.register_singleton(IRobotsFacade,
                                 lambda s: RobotsFacade(
-                                    s.resolve(modules.events.IEventsFacade),
+                                    s.resolve(IRobotStatusService),
                                     s.resolve(RobotListService),
                                     s.resolve(SelectionService)))
